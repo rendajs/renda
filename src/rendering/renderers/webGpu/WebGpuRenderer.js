@@ -305,8 +305,12 @@ export class WebGpuRenderer extends Renderer {
 	 * @override
 	 * @param {WebGpuRendererDomTarget} domTarget
 	 * @param {import("../../../components/builtIn/CameraComponent.js").CameraComponent} camera
+	 * @param {import("../Renderer.js").RenderOptions} [options]
 	 */
-	render(domTarget, camera) {
+	render(domTarget, camera, {
+		clearColor = true,
+		clearDepth = true,
+	} = {}) {
 		if (!this.isInit) return;
 		if (!domTarget.ready || !domTarget.swapChainFormat) return;
 		if (!this.device || !this.#viewsChunkedBuffer || !this.#viewsChunkedBufferGroup || !this.#lightsChunkedBuffer || !this.#lightsChunkedBufferGroup || !this.#materialsChunkedBuffer || !this.#objectsChunkedBuffer || !this.objectUniformsBindGroupLayout || !this.placeHolderSampler) {
@@ -406,7 +410,7 @@ export class WebGpuRenderer extends Renderer {
 			if (!success) return;
 		}
 
-		const renderPassDescriptor = domTarget.getRenderPassDescriptor();
+		const renderPassDescriptor = domTarget.getRenderPassDescriptor(clearColor, clearDepth);
 		if (!renderPassDescriptor) {
 			// This should only be null if domTarget.ready is false, which we already
 			// checked at the start of this function.
