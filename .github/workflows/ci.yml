@@ -122,6 +122,10 @@ jobs:
         run: deno task test test/minified
 
   e2e-tests:
+    # e2e tests are temporarily disabled because github actions fails to launch the browser without any clear error message
+    # the best course of action would probably be to upgrade puppeteer to the latest version, but for that we also have to
+    # upgrade Deno first
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Setup repo
