@@ -1,6 +1,12 @@
 import { RendererDomTarget } from "../RendererDomTarget.js";
 
 /**
+ * @typedef RenderOptions
+ * @property {boolean} [clearColor]
+ * @property {boolean} [clearDepth]
+ */
+
+/**
  * @template {RendererDomTarget} [TDomTarget = RendererDomTarget]
  * @template {unknown[]} [TDomTargetArgs = []]
  */
@@ -16,8 +22,9 @@ export class Renderer {
 	 * Renders a scene from a camera to a dom target.
 	 * @param {RendererDomTarget} domTarget
 	 * @param {import("../../components/builtIn/CameraComponent.js").CameraComponent} camera
+	 * @param {RenderOptions} [options]
 	 */
-	render(domTarget, camera) {}
+	render(domTarget, camera, options) {}
 
 	/**
 	 * @param  {TDomTargetArgs} args

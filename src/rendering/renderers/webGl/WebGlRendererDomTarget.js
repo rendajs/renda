@@ -49,9 +49,16 @@ export class WebGlRendererDomTarget extends RendererDomTarget {
 
 	/**
 	 * @param {HTMLCanvasElement} canvas
+	 * @param {import("../Renderer.js").RenderOptions} [options]
 	 */
-	drawImage(canvas) {
-		this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+	drawImage(canvas, {
+		clearColor = true,
+		clearDepth = true,
+	} = {}) {
+		if (!clearDepth) {
+			throw new Error("Rendering with clearDepth=false is not supported in the WebGl renderer.");
+		}
+		if (clearColor) this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
 		this.#ctx.drawImage(canvas, 0, 0);
 	}
 }

@@ -140,8 +140,9 @@ export class WebGlRenderer extends Renderer {
 	 * @override
 	 * @param {WebGlRendererDomTarget} domTarget
 	 * @param {import("../../../components/builtIn/CameraComponent.js").CameraComponent} camera
+	 * @param {import("../Renderer.js").RenderOptions} [options]
 	 */
-	render(domTarget, camera) {
+	render(domTarget, camera, options) {
 		const gl = this.#gl;
 		if (!this.#isInit || !this.#canvas || !gl) return;
 
@@ -334,7 +335,7 @@ Material.setProperty("${mappedData.mappedName}", customData)`;
 			}
 		}
 
-		domTarget.drawImage(this.#canvas);
+		domTarget.drawImage(this.#canvas, options);
 	}
 
 	/**

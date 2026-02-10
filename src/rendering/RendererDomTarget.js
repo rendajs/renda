@@ -29,8 +29,9 @@ export class RendererDomTarget {
 
 	/**
 	 * @param {import("../components/builtIn/CameraComponent.js").CameraComponent} camera
+	 * @param {import("./renderers/Renderer.js").RenderOptions} [options]
 	 */
-	render(camera) {
+	render(camera, options) {
 		if (this.width <= 0 || this.height <= 0) {
 			// If we try to render while the size is invalid, all sorts of things might break.
 			// This check should solve a lot of issues but implementations should still make sure to
@@ -39,6 +40,6 @@ export class RendererDomTarget {
 			// and create them again once the size is valid again.
 			return;
 		}
-		this.renderer.render(this, camera);
+		this.renderer.render(this, camera, options);
 	}
 }

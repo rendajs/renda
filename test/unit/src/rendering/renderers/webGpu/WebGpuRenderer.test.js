@@ -25,7 +25,7 @@ function createMockDomTarget() {
 		width: 128,
 		height: 256,
 		outputConfig: new RenderOutputConfig(),
-		getRenderPassDescriptor() {
+		getRenderPassDescriptor(clearColor, clearDepths) {
 			return {
 				colorAttachments: /** @type {Iterable<GPURenderPassColorAttachment | null>} */ ([
 					{
@@ -244,6 +244,32 @@ Deno.test({
 
 			const worldMatrix = extractMatrixFromDataView(view, 64);
 			assertMatAlmostEquals(worldMatrix, cubeEntity.worldMatrix);
+		});
+	},
+});
+
+Deno.test({
+	name: "rendering without clearing color or depth",
+	async fn() {
+		await runWithWebGpuAsync(async () => {
+			const engineAssetsManager = createMockEngineAssetsManager();
+			const renderer = new WebGpuRenderer(engineAssetsManager);
+			await renderer.init();
+
+			const domTarget = createMockDomTarget();
+			const scene = new Entity();
+			const { camComponent, cam } = createCam();
+			scene.add(cam);
+
+			const renderPassDescriptorSpy = spy(domTarget, "getRenderPassDescriptor");
+
+			renderer.render(domTarget, camComponent, { clearColor: true, clearDepth: true });
+			assertSpyCalls(renderPassDescriptorSpy, 1);
+			assertEquals(renderPassDescriptorSpy.calls[0].args, [true, true]);
+
+			renderer.render(domTarget, camComponent, { clearColor: false, clearDepth: false });
+			assertSpyCalls(renderPassDescriptorSpy, 2);
+			assertEquals(renderPassDescriptorSpy.calls[1].args, [false, false]);
 		});
 	},
 });

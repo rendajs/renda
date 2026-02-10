@@ -142,9 +142,11 @@ export class WebGpuRendererDomTarget extends RendererDomTarget {
 	}
 
 	/**
+	 * @param {boolean} clearColor
+	 * @param {boolean} clearDepth
 	 * @returns {GPURenderPassDescriptor?}
 	 */
-	getRenderPassDescriptor() {
+	getRenderPassDescriptor(clearColor, clearDepth) {
 		if (!this.ready || !this.ctx) return null;
 		const swapChainTextureView = this.ctx.getCurrentTexture().createView();
 		let view;
@@ -162,11 +164,15 @@ export class WebGpuRendererDomTarget extends RendererDomTarget {
 		this.colorAttachment = {
 			view,
 			resolveTarget,
-			loadOp: "clear",
+			loadOp: clearColor ? "clear" : "load",
 			clearValue: { r: 0, g: 0, b: 0, a: 0 },
 			storeOp: "store",
 		};
 		this.renderPassDescriptor.colorAttachments = [this.colorAttachment];
+
+		if (this.depthStencilAttachment) {
+			this.depthStencilAttachment.depthLoadOp = clearDepth ? "clear" : "load";
+		}
 
 		return this.renderPassDescriptor;
 	}
