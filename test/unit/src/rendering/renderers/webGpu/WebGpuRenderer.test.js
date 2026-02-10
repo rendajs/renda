@@ -25,7 +25,7 @@ function createMockDomTarget() {
 		width: 128,
 		height: 256,
 		outputConfig: new RenderOutputConfig(),
-		getRenderPassDescriptor() {
+		getRenderPassDescriptor(clearColor, clearDepths) {
 			return {
 				colorAttachments: /** @type {Iterable<GPURenderPassColorAttachment | null>} */ ([
 					{
