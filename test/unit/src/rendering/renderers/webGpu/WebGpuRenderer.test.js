@@ -250,7 +250,6 @@ Deno.test({
 
 Deno.test({
 	name: "rendering without clearing color or depth",
-	only: true,
 	async fn() {
 		await runWithWebGpuAsync(async () => {
 			const engineAssetsManager = createMockEngineAssetsManager();
