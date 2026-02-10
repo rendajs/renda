@@ -247,3 +247,30 @@ Deno.test({
 		});
 	},
 });
+
+Deno.test({
+	name: "rendering without clearing color or depth",
+	only: true,
+	async fn() {
+		await runWithWebGpuAsync(async () => {
+			const engineAssetsManager = createMockEngineAssetsManager();
+			const renderer = new WebGpuRenderer(engineAssetsManager);
+			await renderer.init();
+
+			const domTarget = createMockDomTarget();
+			const scene = new Entity();
+			const { camComponent, cam } = createCam();
+			scene.add(cam);
+
+			const renderPassDescriptorSpy = spy(domTarget, "getRenderPassDescriptor");
+
+			renderer.render(domTarget, camComponent, { clearColor: true, clearDepth: true });
+			assertSpyCalls(renderPassDescriptorSpy, 1);
+			assertEquals(renderPassDescriptorSpy.calls[0].args, [true, true]);
+
+			renderer.render(domTarget, camComponent, { clearColor: false, clearDepth: false });
+			assertSpyCalls(renderPassDescriptorSpy, 2);
+			assertEquals(renderPassDescriptorSpy.calls[1].args, [false, false]);
+		});
+	},
+});
