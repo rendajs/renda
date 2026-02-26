@@ -3,7 +3,7 @@ import { Vec3 } from "../../math/Vec3.js";
 import { Entity } from "../../core/Entity.js";
 import { Gizmo } from "./Gizmo.js";
 import { MeshComponent } from "../../components/builtIn/MeshComponent.js";
-import { blueColor, greenColor, hoverColor, redColor } from "./colors.js";
+import { createBlueColor, createGreenColor, createHoverColor, createRedColor } from "./colors.js";
 import { Sphere } from "../../math/shapes/Sphere.js";
 import { Quat } from "../../math/Quat.js";
 
@@ -24,9 +24,9 @@ export class RotationGizmo extends Gizmo {
 	constructor(...args) {
 		super(...args);
 
-		this.xCircleColor = new Vec3(redColor);
-		this.yCircleColor = new Vec3(greenColor);
-		this.zCircleColor = new Vec3(blueColor);
+		this.xCircleColor = createRedColor();
+		this.yCircleColor = createGreenColor();
+		this.zCircleColor = createBlueColor();
 
 		/** @type {Set<RotationGizmoDragCallback>} */
 		this.onDragCbs = new Set();
@@ -62,21 +62,21 @@ export class RotationGizmo extends Gizmo {
 			axis: new Vec3(1, 0, 0),
 			raycastScale: new Vec3(0.1, 1.1, 1.1),
 			colorInstance: this.xCircleColor,
-			defaultColor: redColor,
+			defaultColor: createRedColor(),
 		});
 
 		this.createCircle({
 			axis: new Vec3(0, 1, 0),
 			raycastScale: new Vec3(1.1, 0.1, 1.1),
 			colorInstance: this.yCircleColor,
-			defaultColor: greenColor,
+			defaultColor: createGreenColor(),
 		});
 
 		this.createCircle({
 			axis: new Vec3(0, 0, 1),
 			raycastScale: new Vec3(1.1, 1.1, 0.1),
 			colorInstance: this.zCircleColor,
-			defaultColor: blueColor,
+			defaultColor: createBlueColor(),
 		});
 
 		this.updateAssets();
@@ -155,7 +155,7 @@ export class RotationGizmo extends Gizmo {
 		draggable.addRaycastShape(sphere);
 		draggable.onIsHoveringChange((isHovering) => {
 			if (isHovering) {
-				colorInstance.set(hoverColor);
+				colorInstance.set(createHoverColor());
 			} else {
 				colorInstance.set(defaultColor);
 			}

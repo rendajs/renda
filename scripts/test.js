@@ -41,6 +41,7 @@ if (Deno.args.length > 0 && !Deno.args[0].startsWith("-")) {
 const needsUnitTests = !filteredTests || filteredTests.startsWith("test/unit");
 const needsMinifiedTests = !filteredTests || filteredTests.startsWith("test/minified");
 const needsE2eTests = !filteredTests || filteredTests.startsWith("test/e2e");
+const needsMiscTests = !filteredTests || filteredTests.startsWith("test/misc");
 
 await dev({
 	needsDependencies: needsE2eTests,
@@ -195,6 +196,13 @@ if (needsE2eTests) {
 	const cmd = [Deno.execPath(), "run", "--allow-env", "--allow-read", "--allow-write", "--allow-run", "--allow-net"];
 	if (inspect) cmd.push("--inspect-brk");
 	cmd.push("test/e2e/shared/e2eTestRunner.js", ...Deno.args);
+	testCommands.push(cmd);
+}
+
+// Misc tests
+if (needsMiscTests) {
+	const cmd = [Deno.execPath(), "test", "--no-check", "--allow-env", "--allow-read", "--allow-net", "--allow-ffi", "--allow-sys"];
+	cmd.push(filteredTests || "test/misc/");
 	testCommands.push(cmd);
 }
 

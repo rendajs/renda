@@ -8,7 +8,13 @@ import { StorageType, binaryToObject, binaryToObjectWithAssetLoader, createObjec
  * @property {import("../../mod.js").StorageTypeEnum["UUID"]} uuid
  * @property {import("../../mod.js").StorageTypeEnum["ARRAY_BUFFER"]} propertyValues
  */
-
+/**
+ * @typedef EntityBinaryStructureAsset
+ * @property {import("../../mod.js").StorageTypeEnum["UUID"]} assetUuid
+ */
+/**
+ * @typedef {[import("../../mod.js").StorageTypeEnum["UNION_ARRAY"], EntityBinaryStructureAsset, EntityBinaryStructureInline]} EntityBinaryStructure
+ */
 /**
  * @typedef EntityBinaryStructureInline
  * @property {import("../../mod.js").StorageTypeEnum["STRING"]} name
@@ -16,44 +22,38 @@ import { StorageType, binaryToObject, binaryToObjectWithAssetLoader, createObjec
  * @property {[EntityBinaryStructure]} children
  * @property {[EntityComponentStructure]} components
  */
+/** @typedef {import("../../util/binarySerializationTypes.ts").StructureToObject<EntityBinaryStructure>} EnityData */
 
-/** @type {EntityBinaryStructureInline} */
-const entityBinaryStructureInline = {
-	name: StorageType.STRING,
-	matrix: [StorageType.FLOAT32],
-	children: /** @type {any} */ ([]),
-	components: [
-		{
-			uuid: StorageType.UUID,
-			propertyValues: StorageType.ARRAY_BUFFER,
-		},
-	],
-};
+function createEntityBinaryStructureInline() {
+	/** @type {EntityBinaryStructureInline} */
+	const entityBinaryStructureInline = {
+		name: StorageType.STRING,
+		matrix: [StorageType.FLOAT32],
+		children: /** @type {any} */ ([]),
+		components: [
+			{
+				uuid: StorageType.UUID,
+				propertyValues: StorageType.ARRAY_BUFFER,
+			},
+		],
+	};
 
-/**
- * @typedef EntityBinaryStructureAsset
- * @property {import("../../mod.js").StorageTypeEnum["UUID"]} assetUuid
- */
+	/** @type {EntityBinaryStructureAsset} */
+	const entityBinaryStructureAsset = {
+		assetUuid: StorageType.UUID,
+	};
 
-/** @type {EntityBinaryStructureAsset} */
-const entityBinaryStructureAsset = {
-	assetUuid: StorageType.UUID,
-};
+	/** @type {EntityBinaryStructure} */
+	const entityBinaryStructure = [
+		StorageType.UNION_ARRAY,
+		entityBinaryStructureAsset,
+		entityBinaryStructureInline,
+	];
 
-/**
- * @typedef {[import("../../mod.js").StorageTypeEnum["UNION_ARRAY"], EntityBinaryStructureAsset, EntityBinaryStructureInline]} EntityBinaryStructure
- */
+	entityBinaryStructureInline.children[0] = entityBinaryStructure;
 
-/** @type {EntityBinaryStructure} */
-const entityBinaryStructure = [
-	StorageType.UNION_ARRAY,
-	entityBinaryStructureAsset,
-	entityBinaryStructureInline,
-];
-
-entityBinaryStructureInline.children[0] = entityBinaryStructure;
-
-/** @typedef {import("../../util/binarySerializationTypes.ts").StructureToObject<typeof entityBinaryStructure>} EnityData */
+	return entityBinaryStructureInline;
+}
 
 const entityBinaryNameIds = {
 	name: 1,
@@ -91,7 +91,7 @@ export class AssetLoaderTypeEntity extends AssetLoaderType {
 
 	static get entityBinaryFormat() {
 		return createObjectToBinaryOptions({
-			structure: entityBinaryStructureInline,
+			structure: createEntityBinaryStructureInline(),
 			nameIds: entityBinaryNameIds,
 		});
 	}
