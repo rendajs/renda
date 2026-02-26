@@ -201,7 +201,7 @@ if (needsE2eTests) {
 
 // Misc tests
 if (needsMiscTests) {
-	const cmd = [Deno.execPath(), "test", "--no-check", "--allow-env", "--allow-read", "--allow-net", "--allow-ffi"];
+	const cmd = [Deno.execPath(), "test", "--no-check", "--allow-env", "--allow-read", "--allow-net", "--allow-ffi", "--allow-sys"];
 	cmd.push(filteredTests || "test/misc/");
 	testCommands.push(cmd);
 }
