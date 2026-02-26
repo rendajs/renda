@@ -30,11 +30,8 @@ jobs:
       - name: Build package
         run: deno task build-npm-package ${{ github.event.release.tag_name }} ${{ inputs.version }}
 
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
       - run: cd npmPackage && npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
