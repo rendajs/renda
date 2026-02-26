@@ -5,7 +5,7 @@ import { Vec3 } from "../../math/Vec3.js";
 import { Sphere } from "../../math/shapes/Sphere.js";
 import { Gizmo } from "./Gizmo.js";
 import { Entity } from "../../core/Entity.js";
-import { blueColor, greenColor, hoverColor, redColor, whiteColor } from "./colors.js";
+import { createBlueColor, createGreenColor, createHoverColor, createRedColor, createWhiteColor } from "./colors.js";
 
 /**
  * @typedef ScaleGizmoDragEvent
@@ -17,10 +17,10 @@ import { blueColor, greenColor, hoverColor, redColor, whiteColor } from "./color
  */
 
 export class ScaleGizmo extends Gizmo {
-	#circleMaterialColor = new Vec3(whiteColor);
-	#xArrowColor = new Vec3(redColor);
-	#yArrowColor = new Vec3(greenColor);
-	#zArrowColor = new Vec3(blueColor);
+	#circleMaterialColor = createWhiteColor();
+	#xArrowColor = createRedColor();
+	#yArrowColor = createGreenColor();
+	#zArrowColor = createBlueColor();
 
 	/** @type {Set<ScaleGizmoDragCallback>} */
 	#onDragCbs = new Set();
@@ -86,9 +86,9 @@ export class ScaleGizmo extends Gizmo {
 		this.entity.add(this.#centerDraggable.entity);
 		this.#centerDraggable.onIsHoveringChange((isHovering) => {
 			if (isHovering) {
-				this.#circleMaterialColor.set(hoverColor);
+				this.#circleMaterialColor.set(createHoverColor());
 			} else {
-				this.#circleMaterialColor.set(whiteColor);
+				this.#circleMaterialColor.set(createWhiteColor());
 			}
 			this.gizmoNeedsRender();
 		});
@@ -122,17 +122,17 @@ export class ScaleGizmo extends Gizmo {
 		const meshX = this.#createArrow({
 			axis: new Vec3(1, 0, 0),
 			colorInstance: this.#xArrowColor,
-			defaultColor: redColor,
+			defaultColor: createRedColor(),
 		});
 		const meshY = this.#createArrow({
 			axis: new Vec3(0, 1, 0),
 			colorInstance: this.#yArrowColor,
-			defaultColor: greenColor,
+			defaultColor: createGreenColor(),
 		});
 		const meshZ = this.#createArrow({
 			axis: new Vec3(0, 0, 1),
 			colorInstance: this.#zArrowColor,
-			defaultColor: blueColor,
+			defaultColor: createBlueColor(),
 		});
 		this.#xArrowMesh = meshX;
 		this.#yArrowMesh = meshY;
@@ -215,7 +215,7 @@ export class ScaleGizmo extends Gizmo {
 		draggable.addRaycastShape(sphere);
 		draggable.onIsHoveringChange((isHovering) => {
 			if (isHovering) {
-				colorInstance.set(hoverColor);
+				colorInstance.set(createHoverColor());
 			} else {
 				colorInstance.set(defaultColor);
 			}
