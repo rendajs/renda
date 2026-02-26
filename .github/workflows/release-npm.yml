@@ -10,12 +10,15 @@ on:
         type: string
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   # be sure to also update these in other workflows
   DENO_DIR: deno_dir
   DENO_VERSION: "1.42.3"
 
-permissions: {}
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
