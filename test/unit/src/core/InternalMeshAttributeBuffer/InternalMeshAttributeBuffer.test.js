@@ -405,6 +405,59 @@ Deno.test({
 });
 
 Deno.test({
+	name: "setVertexData() generator of numbers",
+	fn() {
+		const buffer = new InternalMeshAttributeBuffer({
+			attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount: 1, attributeType: Mesh.AttributeType.POSITION }],
+		});
+		buffer.setVertexCount(3);
+
+		const generatorFn = function *() {
+			yield 1;
+			yield 2;
+			yield 3;
+		};
+
+		buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
+
+		assertEquals(Array.from(buffer.getVertexData(Mesh.AttributeType.POSITION)), [1, 2, 3]);
+
+		const dataView = new DataView(buffer.buffer);
+		assertEquals(dataView.getFloat32(0, true), 1);
+		assertEquals(dataView.getFloat32(4, true), 2);
+		assertEquals(dataView.getFloat32(8, true), 3);
+	},
+});
+
+Deno.test({
+	name: "setVertexData() generator of Vec2",
+	fn() {
+		const buffer = new InternalMeshAttributeBuffer({
+			attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount: 2, attributeType: Mesh.AttributeType.POSITION }],
+		});
+		buffer.setVertexCount(2);
+
+		const generatorFn = function *() {
+			yield new Vec2(1, 2);
+			yield new Vec2(3, 4);
+		};
+
+		buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
+
+		const data = Array.from(buffer.getVertexData(Mesh.AttributeType.POSITION));
+		assertEquals(data.length, 2);
+		assertVecAlmostEquals(data[0], [1, 2]);
+		assertVecAlmostEquals(data[1], [3, 4]);
+
+		const dataView = new DataView(buffer.buffer);
+		assertEquals(dataView.getFloat32(0, true), 1);
+		assertEquals(dataView.getFloat32(4, true), 2);
+		assertEquals(dataView.getFloat32(8, true), 3);
+		assertEquals(dataView.getFloat32(12, true), 4);
+	},
+});
+
+Deno.test({
 	name: "setVertexData() should throw when the attribute type is not present",
 	fn() {
 		const buffer = new InternalMeshAttributeBuffer();
@@ -738,6 +791,29 @@ Potential fixes:
  - add a "POSITION" attribute to the VertexState.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 3.
  - provide a Vec4 array.`);
+	},
+});
+
+Deno.test({
+	name: "setVertexData() should throw when data doesn't match the component count (1)",
+	fn() {
+		const buffer = new InternalMeshAttributeBuffer({
+			attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount: 1, attributeType: Mesh.AttributeType.POSITION }],
+		});
+		buffer.setVertexCount(2);
+
+		const generatorFn = function *() {
+			yield new Vec2(1, 2);
+			yield new Vec2(3, 4);
+		};
+
+		assertThrows(() => {
+			buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
+		}, Error, `Expected a number array but received a Vec2 array.
+The VertexState for this attribute has a componentCount of 1.
+Potential fixes:
+ - set the componentCount of "POSITION" in your VertexState to 2.
+ - provide a number array.`);
 	},
 });
 

@@ -298,7 +298,7 @@ export class Mesh {
 	 * If you still wish to store vertex data in 'unused' buffers,
 	 * make sure to provide a `unusedFormat` and a `unusedComponentCount` to avoid errors.
 	 * @param {AttributeType} attributeType
-	 * @param {ArrayBufferLike | number[] | import("../math/Vec2.js").Vec2[] | import("../math/Vec3.js").Vec3[] | import("../math/Vec4.js").Vec4[]} data
+	 * @param {ArrayBuffer | Iterable<number | import("../math/Vec2.js").Vec2 | import("../math/Vec3.js").Vec3 | import("../math/Vec4.js").Vec4>} data
 	 * @param {UnusedAttributeBufferOptions<any>} [opts]
 	 */
 	setVertexData(attributeType, data, opts) {
