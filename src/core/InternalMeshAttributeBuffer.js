@@ -148,32 +148,49 @@ export class InternalMeshAttributeBuffer {
 	}
 
 	/**
+	 * Asserts that the provided `pos` value adheres to the expected format according to the attributeSettings.
+	 * @param {number | Vec2 | Vec3 | Vec4} pos
+	 * @param {MeshAttributeSettings} attributeSettings
+	 * @param {boolean | undefined} meshHasVertexState
+	 */
+	#assertVertexDataTypes(pos, attributeSettings, meshHasVertexState) {
+		if (attributeSettings.componentCount == 1) {
+			this.#assertVertexDataType(typeof pos == "number", attributeSettings, "number", pos, meshHasVertexState);
+		} else if (attributeSettings.componentCount == 2) {
+			this.#assertVertexDataType(pos instanceof Vec2, attributeSettings, "Vec2", pos, meshHasVertexState);
+		} else if (attributeSettings.componentCount == 3) {
+			this.#assertVertexDataType(pos instanceof Vec3, attributeSettings, "Vec3", pos, meshHasVertexState);
+		} else if (attributeSettings.componentCount == 4) {
+			this.#assertVertexDataType(pos instanceof Vec4, attributeSettings, "Vec4", pos, meshHasVertexState);
+		}
+	}
+
+	/**
 	 * @param {boolean} assertion
 	 * @param {MeshAttributeSettings} attributeSettings
 	 * @param {string} expectedText
-	 * @param {number[] | Vec2[] | Vec3[] | Vec4[]} dataArray
+	 * @param {number | Vec2 | Vec3 | Vec4} firstIterableItem
 	 * @param {boolean | undefined} meshHasVertexState
 	 */
-	#assertVertexDataType(assertion, attributeSettings, expectedText, dataArray, meshHasVertexState) {
+	#assertVertexDataType(assertion, attributeSettings, expectedText, firstIterableItem, meshHasVertexState) {
 		if (!assertion) {
 			let dataType;
-			const firstArrayItem = dataArray[0];
 			let receivedComponentCount = null;
-			if (typeof firstArrayItem == "number") {
+			if (typeof firstIterableItem == "number") {
 				receivedComponentCount = 1;
-			} else if (firstArrayItem instanceof Vec2) {
+			} else if (firstIterableItem instanceof Vec2) {
 				receivedComponentCount = 2;
-			} else if (firstArrayItem instanceof Vec3) {
+			} else if (firstIterableItem instanceof Vec3) {
 				receivedComponentCount = 3;
-			} else if (firstArrayItem instanceof Vec4) {
+			} else if (firstIterableItem instanceof Vec4) {
 				receivedComponentCount = 4;
 			} else {
-				throw new Error("Assertion failed, unexpected array type: " + firstArrayItem);
+				throw new Error("Assertion failed, unexpected iterable type: " + firstIterableItem);
 			}
-			if (firstArrayItem != null && firstArrayItem != undefined) {
-				dataType = firstArrayItem.constructor.name;
+			if (firstIterableItem != null && firstIterableItem != undefined) {
+				dataType = firstIterableItem.constructor.name;
 			} else {
-				dataType = String(firstArrayItem);
+				dataType = String(firstIterableItem);
 			}
 			const fixesList = [];
 			let vertexStateSentence;
@@ -187,20 +204,20 @@ export class InternalMeshAttributeBuffer {
 					fixesList.push(`add a VertexState with "${attributeName}" attribute.`);
 				}
 				fixesList.push(`set the \`unusedComponentCount\` option of \`setVertexData()\` to ${receivedComponentCount}.`);
-				fixesList.push(`provide a ${expectedText} array.`);
+				fixesList.push(`provide a ${expectedText} iterable.`);
 			} else {
 				vertexStateSentence = `The VertexState for this attribute has a componentCount of ${attributeSettings.componentCount}.`;
 				fixesList.push(`set the componentCount of "${attributeName}" in your VertexState to ${receivedComponentCount}.`);
-				fixesList.push(`provide a ${expectedText} array.`);
+				fixesList.push(`provide a ${expectedText} iterable.`);
 			}
 			const fixesStr = fixesList.map((str) => " - " + str).join("\n");
-			throw new TypeError(`Expected a ${expectedText} array but received a ${dataType} array.\n${vertexStateSentence}\nPotential fixes:\n${fixesStr}`);
+			throw new TypeError(`Expected a ${expectedText} iterable but received a ${dataType} iterable.\n${vertexStateSentence}\nPotential fixes:\n${fixesStr}`);
 		}
 	}
 
 	/**
 	 * @param {import("./Mesh.js").AttributeType} attributeType
-	 * @param {ArrayBufferLike | number[] | Vec2[] | Vec3[] | Vec4[]} data
+	 * @param {ArrayBuffer | Iterable<number | Vec2 | Vec3 | Vec4>} data
 	 * @param {boolean} meshHasVertexState A hint that is used to provide more helpful error messages.
 	 * Set to true if the linked mesh contains a vertex state.
 	 */
@@ -241,42 +258,55 @@ export class InternalMeshAttributeBuffer {
 			new Uint8Array(this.buffer).set(new Uint8Array(data));
 		} else if (ArrayBuffer.isView(data)) {
 			new Uint8Array(this.buffer).set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-		} else if (Array.isArray(data)) {
-			if (data.length <= 0) {
-				return;
-			} else if (attributeSettings.componentCount == 1) {
-				let i = 0;
-				this.#assertVertexDataType(typeof data[0] == "number", attributeSettings, "number", data, meshHasVertexState);
-				const castData = /** @type {number[]} */ (data);
-				while (i < castData.length) {
+		} else if (data != null && typeof data[Symbol.iterator] == "function") {
+			let didAssertType = false;
+
+			/**
+			 * @param {number | Vec2 | Vec3 | Vec4} pos
+			 */
+			const assertType = (pos) => {
+				if (!didAssertType) {
+					this.#assertVertexDataTypes(pos, attributeSettings, meshHasVertexState);
+					didAssertType = true;
+				}
+			};
+
+			let i = 0;
+			if (attributeSettings.componentCount == 1) {
+				const castData = /** @type {Iterable<number>} */ (data);
+				for (const pos of castData) {
+					assertType(pos);
 					for (let j = 0; j < attributeSettings.componentCount; j++) {
-						setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * j, castData[i], true);
+						setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * j, pos, true);
 					}
 					i++;
 				}
 			} else if (attributeSettings.componentCount == 2) {
-				this.#assertVertexDataType(data[0] instanceof Vec2, attributeSettings, "Vec2", data, meshHasVertexState);
-				const castData = /** @type {Vec2[]} */ (data);
-				for (const [i, pos] of castData.entries()) {
+				const castData = /** @type {Iterable<Vec2>} */ (data);
+				for (const pos of castData) {
+					assertType(pos);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 0, pos.x, true);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 1, pos.y, true);
+					i++;
 				}
 			} else if (attributeSettings.componentCount == 3) {
-				this.#assertVertexDataType(data[0] instanceof Vec3, attributeSettings, "Vec3", data, meshHasVertexState);
-				const castData = /** @type {Vec3[]} */ (data);
-				for (const [i, pos] of castData.entries()) {
+				const castData = /** @type {Iterable<Vec3>} */ (data);
+				for (const pos of castData) {
+					assertType(pos);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 0, pos.x, true);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 1, pos.y, true);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 2, pos.z, true);
+					i++;
 				}
 			} else if (attributeSettings.componentCount == 4) {
-				this.#assertVertexDataType(data[0] instanceof Vec4, attributeSettings, "Vec4", data, meshHasVertexState);
-				const castData = /** @type {Vec4[]} */ (data);
-				for (const [i, pos] of castData.entries()) {
+				const castData = /** @type {Iterable<Vec4>} */ (data);
+				for (const pos of castData) {
+					assertType(pos);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 0, pos.x, true);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 1, pos.y, true);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 2, pos.z, true);
 					setFunction(i * this.arrayStride + attributeSettings.offset + valueByteSize * 3, pos.w, true);
+					i++;
 				}
 			}
 		}

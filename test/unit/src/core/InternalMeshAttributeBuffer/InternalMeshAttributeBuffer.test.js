@@ -405,6 +405,59 @@ Deno.test({
 });
 
 Deno.test({
+	name: "setVertexData() generator of numbers",
+	fn() {
+		const buffer = new InternalMeshAttributeBuffer({
+			attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount: 1, attributeType: Mesh.AttributeType.POSITION }],
+		});
+		buffer.setVertexCount(3);
+
+		const generatorFn = function *() {
+			yield 1;
+			yield 2;
+			yield 3;
+		};
+
+		buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
+
+		assertEquals(Array.from(buffer.getVertexData(Mesh.AttributeType.POSITION)), [1, 2, 3]);
+
+		const dataView = new DataView(buffer.buffer);
+		assertEquals(dataView.getFloat32(0, true), 1);
+		assertEquals(dataView.getFloat32(4, true), 2);
+		assertEquals(dataView.getFloat32(8, true), 3);
+	},
+});
+
+Deno.test({
+	name: "setVertexData() generator of Vec2",
+	fn() {
+		const buffer = new InternalMeshAttributeBuffer({
+			attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount: 2, attributeType: Mesh.AttributeType.POSITION }],
+		});
+		buffer.setVertexCount(2);
+
+		const generatorFn = function *() {
+			yield new Vec2(1, 2);
+			yield new Vec2(3, 4);
+		};
+
+		buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
+
+		const data = Array.from(buffer.getVertexData(Mesh.AttributeType.POSITION));
+		assertEquals(data.length, 2);
+		assertVecAlmostEquals(data[0], [1, 2]);
+		assertVecAlmostEquals(data[1], [3, 4]);
+
+		const dataView = new DataView(buffer.buffer);
+		assertEquals(dataView.getFloat32(0, true), 1);
+		assertEquals(dataView.getFloat32(4, true), 2);
+		assertEquals(dataView.getFloat32(8, true), 3);
+		assertEquals(dataView.getFloat32(12, true), 4);
+	},
+});
+
+Deno.test({
 	name: "setVertexData() should throw when the attribute type is not present",
 	fn() {
 		const buffer = new InternalMeshAttributeBuffer();
@@ -425,27 +478,27 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], false);
-		}, Error, `Expected a number array but received a Vec2 array.
+		}, Error, `Expected a number iterable but received a Vec2 iterable.
 The VertexState for this attribute has a componentCount of 1.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 2.
- - provide a number array.`);
+ - provide a number iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], false);
-		}, Error, `Expected a number array but received a Vec3 array.
+		}, Error, `Expected a number iterable but received a Vec3 iterable.
 The VertexState for this attribute has a componentCount of 1.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 3.
- - provide a number array.`);
+ - provide a number iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec4(), new Vec4()], false);
-		}, Error, `Expected a number array but received a Vec4 array.
+		}, Error, `Expected a number iterable but received a Vec4 iterable.
 The VertexState for this attribute has a componentCount of 1.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 4.
- - provide a number array.`);
+ - provide a number iterable.`);
 	},
 });
 
@@ -460,30 +513,30 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], false);
-		}, Error, `Expected a number array but received a Vec2 array.
+		}, Error, `Expected a number iterable but received a Vec2 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 2.
- - provide a number array.`);
+ - provide a number iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], false);
-		}, Error, `Expected a number array but received a Vec3 array.
+		}, Error, `Expected a number iterable but received a Vec3 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 3.
- - provide a number array.`);
+ - provide a number iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec4(), new Vec4()], false);
-		}, Error, `Expected a number array but received a Vec4 array.
+		}, Error, `Expected a number iterable but received a Vec4 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 4.
- - provide a number array.`);
+ - provide a number iterable.`);
 	},
 });
 
@@ -497,27 +550,27 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], false);
-		}, Error, `Expected a Vec2 array but received a Number array.
+		}, Error, `Expected a Vec2 iterable but received a Number iterable.
 The VertexState for this attribute has a componentCount of 2.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 1.
- - provide a Vec2 array.`);
+ - provide a Vec2 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], false);
-		}, Error, `Expected a Vec2 array but received a Vec3 array.
+		}, Error, `Expected a Vec2 iterable but received a Vec3 iterable.
 The VertexState for this attribute has a componentCount of 2.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 3.
- - provide a Vec2 array.`);
+ - provide a Vec2 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec4(), new Vec4()], false);
-		}, Error, `Expected a Vec2 array but received a Vec4 array.
+		}, Error, `Expected a Vec2 iterable but received a Vec4 iterable.
 The VertexState for this attribute has a componentCount of 2.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 4.
- - provide a Vec2 array.`);
+ - provide a Vec2 iterable.`);
 	},
 });
 
@@ -532,30 +585,30 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], false);
-		}, Error, `Expected a Vec2 array but received a Number array.
+		}, Error, `Expected a Vec2 iterable but received a Number iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 1.
- - provide a Vec2 array.`);
+ - provide a Vec2 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], false);
-		}, Error, `Expected a Vec2 array but received a Vec3 array.
+		}, Error, `Expected a Vec2 iterable but received a Vec3 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 3.
- - provide a Vec2 array.`);
+ - provide a Vec2 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec4(), new Vec4()], false);
-		}, Error, `Expected a Vec2 array but received a Vec4 array.
+		}, Error, `Expected a Vec2 iterable but received a Vec4 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 4.
- - provide a Vec2 array.`);
+ - provide a Vec2 iterable.`);
 	},
 });
 
@@ -569,27 +622,27 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], false);
-		}, Error, `Expected a Vec3 array but received a Number array.
+		}, Error, `Expected a Vec3 iterable but received a Number iterable.
 The VertexState for this attribute has a componentCount of 3.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 1.
- - provide a Vec3 array.`);
+ - provide a Vec3 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], false);
-		}, Error, `Expected a Vec3 array but received a Vec2 array.
+		}, Error, `Expected a Vec3 iterable but received a Vec2 iterable.
 The VertexState for this attribute has a componentCount of 3.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 2.
- - provide a Vec3 array.`);
+ - provide a Vec3 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec4(), new Vec4()], false);
-		}, Error, `Expected a Vec3 array but received a Vec4 array.
+		}, Error, `Expected a Vec3 iterable but received a Vec4 iterable.
 The VertexState for this attribute has a componentCount of 3.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 4.
- - provide a Vec3 array.`);
+ - provide a Vec3 iterable.`);
 	},
 });
 
@@ -604,30 +657,30 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], false);
-		}, Error, `Expected a Vec3 array but received a Number array.
+		}, Error, `Expected a Vec3 iterable but received a Number iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 1.
- - provide a Vec3 array.`);
+ - provide a Vec3 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], false);
-		}, Error, `Expected a Vec3 array but received a Vec2 array.
+		}, Error, `Expected a Vec3 iterable but received a Vec2 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 2.
- - provide a Vec3 array.`);
+ - provide a Vec3 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec4(), new Vec4()], false);
-		}, Error, `Expected a Vec3 array but received a Vec4 array.
+		}, Error, `Expected a Vec3 iterable but received a Vec4 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 4.
- - provide a Vec3 array.`);
+ - provide a Vec3 iterable.`);
 	},
 });
 
@@ -641,27 +694,27 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], false);
-		}, Error, `Expected a Vec4 array but received a Number array.
+		}, Error, `Expected a Vec4 iterable but received a Number iterable.
 The VertexState for this attribute has a componentCount of 4.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 1.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], false);
-		}, Error, `Expected a Vec4 array but received a Vec2 array.
+		}, Error, `Expected a Vec4 iterable but received a Vec2 iterable.
 The VertexState for this attribute has a componentCount of 4.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 2.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], false);
-		}, Error, `Expected a Vec4 array but received a Vec3 array.
+		}, Error, `Expected a Vec4 iterable but received a Vec3 iterable.
 The VertexState for this attribute has a componentCount of 4.
 Potential fixes:
  - set the componentCount of "POSITION" in your VertexState to 3.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 	},
 });
 
@@ -676,30 +729,30 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], false);
-		}, Error, `Expected a Vec4 array but received a Number array.
+		}, Error, `Expected a Vec4 iterable but received a Number iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 1.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], false);
-		}, Error, `Expected a Vec4 array but received a Vec2 array.
+		}, Error, `Expected a Vec4 iterable but received a Vec2 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 2.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], false);
-		}, Error, `Expected a Vec4 array but received a Vec3 array.
+		}, Error, `Expected a Vec4 iterable but received a Vec3 iterable.
 The mesh has no VertexState.
 Potential fixes:
  - add a VertexState with "POSITION" attribute.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 3.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 	},
 });
 
@@ -714,30 +767,53 @@ Deno.test({
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [1, 2], true);
-		}, Error, `Expected a Vec4 array but received a Number array.
+		}, Error, `Expected a Vec4 iterable but received a Number iterable.
 The provided VertexState doesn't contain a "POSITION" attribute.
 Potential fixes:
  - add a "POSITION" attribute to the VertexState.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 1.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec2(), new Vec2()], true);
-		}, Error, `Expected a Vec4 array but received a Vec2 array.
+		}, Error, `Expected a Vec4 iterable but received a Vec2 iterable.
 The provided VertexState doesn't contain a "POSITION" attribute.
 Potential fixes:
  - add a "POSITION" attribute to the VertexState.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 2.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, [new Vec3(), new Vec3()], true);
-		}, Error, `Expected a Vec4 array but received a Vec3 array.
+		}, Error, `Expected a Vec4 iterable but received a Vec3 iterable.
 The provided VertexState doesn't contain a "POSITION" attribute.
 Potential fixes:
  - add a "POSITION" attribute to the VertexState.
  - set the \`unusedComponentCount\` option of \`setVertexData()\` to 3.
- - provide a Vec4 array.`);
+ - provide a Vec4 iterable.`);
+	},
+});
+
+Deno.test({
+	name: "setVertexData() should throw when data doesn't match the component count (1)",
+	fn() {
+		const buffer = new InternalMeshAttributeBuffer({
+			attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount: 1, attributeType: Mesh.AttributeType.POSITION }],
+		});
+		buffer.setVertexCount(2);
+
+		const generatorFn = function *() {
+			yield new Vec2(1, 2);
+			yield new Vec2(3, 4);
+		};
+
+		assertThrows(() => {
+			buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
+		}, Error, `Expected a number iterable but received a Vec2 iterable.
+The VertexState for this attribute has a componentCount of 1.
+Potential fixes:
+ - set the componentCount of "POSITION" in your VertexState to 2.
+ - provide a number iterable.`);
 	},
 });
 
