@@ -412,11 +412,11 @@ Deno.test({
 		});
 		buffer.setVertexCount(3);
 
-		const generatorFn = function *() {
+		const generatorFn = function*() {
 			yield 1;
 			yield 2;
 			yield 3;
-		};
+		}
 
 		buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
 
@@ -437,10 +437,10 @@ Deno.test({
 		});
 		buffer.setVertexCount(2);
 
-		const generatorFn = function *() {
-			yield new Vec2(1, 2);
-			yield new Vec2(3, 4);
-		};
+		const generatorFn = function*() {
+			yield new Vec2(1,2);
+			yield new Vec2(3,4);
+		}
 
 		buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
 
@@ -802,10 +802,10 @@ Deno.test({
 		});
 		buffer.setVertexCount(2);
 
-		const generatorFn = function *() {
-			yield new Vec2(1, 2);
-			yield new Vec2(3, 4);
-		};
+		const generatorFn = function*() {
+			yield new Vec2(1,2);
+			yield new Vec2(3,4);
+		}
 
 		assertThrows(() => {
 			buffer.setVertexData(Mesh.AttributeType.POSITION, generatorFn(), false);
@@ -816,6 +816,7 @@ Potential fixes:
  - provide a number array.`);
 	},
 });
+
 
 Deno.test({
 	name: "setVertexData() should fire onBufferChanged callbacks",
