@@ -169,28 +169,28 @@ export class InternalMeshAttributeBuffer {
 	 * @param {boolean} assertion
 	 * @param {MeshAttributeSettings} attributeSettings
 	 * @param {string} expectedText
-	 * @param {number | Vec2 | Vec3 | Vec4} firstArrayItem
+	 * @param {number | Vec2 | Vec3 | Vec4} firstIterableItem
 	 * @param {boolean | undefined} meshHasVertexState
 	 */
-	#assertVertexDataType(assertion, attributeSettings, expectedText, firstArrayItem, meshHasVertexState) {
+	#assertVertexDataType(assertion, attributeSettings, expectedText, firstIterableItem, meshHasVertexState) {
 		if (!assertion) {
 			let dataType;
 			let receivedComponentCount = null;
-			if (typeof firstArrayItem == "number") {
+			if (typeof firstIterableItem == "number") {
 				receivedComponentCount = 1;
-			} else if (firstArrayItem instanceof Vec2) {
+			} else if (firstIterableItem instanceof Vec2) {
 				receivedComponentCount = 2;
-			} else if (firstArrayItem instanceof Vec3) {
+			} else if (firstIterableItem instanceof Vec3) {
 				receivedComponentCount = 3;
-			} else if (firstArrayItem instanceof Vec4) {
+			} else if (firstIterableItem instanceof Vec4) {
 				receivedComponentCount = 4;
 			} else {
-				throw new Error("Assertion failed, unexpected array type: " + firstArrayItem);
+				throw new Error("Assertion failed, unexpected iterable type: " + firstIterableItem);
 			}
-			if (firstArrayItem != null && firstArrayItem != undefined) {
-				dataType = firstArrayItem.constructor.name;
+			if (firstIterableItem != null && firstIterableItem != undefined) {
+				dataType = firstIterableItem.constructor.name;
 			} else {
-				dataType = String(firstArrayItem);
+				dataType = String(firstIterableItem);
 			}
 			const fixesList = [];
 			let vertexStateSentence;
@@ -204,14 +204,14 @@ export class InternalMeshAttributeBuffer {
 					fixesList.push(`add a VertexState with "${attributeName}" attribute.`);
 				}
 				fixesList.push(`set the \`unusedComponentCount\` option of \`setVertexData()\` to ${receivedComponentCount}.`);
-				fixesList.push(`provide a ${expectedText} array.`);
+				fixesList.push(`provide a ${expectedText} iterable.`);
 			} else {
 				vertexStateSentence = `The VertexState for this attribute has a componentCount of ${attributeSettings.componentCount}.`;
 				fixesList.push(`set the componentCount of "${attributeName}" in your VertexState to ${receivedComponentCount}.`);
-				fixesList.push(`provide a ${expectedText} array.`);
+				fixesList.push(`provide a ${expectedText} iterable.`);
 			}
 			const fixesStr = fixesList.map((str) => " - " + str).join("\n");
-			throw new TypeError(`Expected a ${expectedText} array but received a ${dataType} array.\n${vertexStateSentence}\nPotential fixes:\n${fixesStr}`);
+			throw new TypeError(`Expected a ${expectedText} iterable but received a ${dataType} iterable.\n${vertexStateSentence}\nPotential fixes:\n${fixesStr}`);
 		}
 	}
 
