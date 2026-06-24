@@ -315,9 +315,11 @@ export class InternalMeshAttributeBuffer {
 	}
 
 	/**
+	 * @template {import("./Mesh.js").GetVertexDataOptionsTemplate} T
 	 * @param {import("./Mesh.js").AttributeType} attributeType
+	 * @param {import("./Mesh.js").GetVertexDataOptions<T>} [options]
 	 */
-	*getVertexData(attributeType) {
+	*getVertexData(attributeType, { vec } = {}) {
 		const attributeSettings = this.getAttributeSettings(attributeType);
 		if (!attributeSettings) {
 			throw new Error("The attribute does not contain the specified attribute type.");
@@ -362,7 +364,11 @@ export class InternalMeshAttributeBuffer {
 			while (i <= this.buffer.byteLength - this.arrayStride) {
 				const x = getFunction(i + attributeSettings.offset + valueByteSize * 0, true);
 				const y = getFunction(i + attributeSettings.offset + valueByteSize * 1, true);
-				yield new Vec2(x, y);
+				if (!vec) {
+					yield new Vec2(x, y);
+				} else {
+					yield vec.set(x, y);
+				}
 				i += this.arrayStride;
 			}
 		} else if (attributeSettings.componentCount == 3) {
@@ -371,7 +377,12 @@ export class InternalMeshAttributeBuffer {
 				const x = getFunction(i + attributeSettings.offset + valueByteSize * 0, true);
 				const y = getFunction(i + attributeSettings.offset + valueByteSize * 1, true);
 				const z = getFunction(i + attributeSettings.offset + valueByteSize * 2, true);
-				yield new Vec3(x, y, z);
+				if (!vec) {
+					yield new Vec3(x, y, z);
+				} else {
+					const castVec = /** @type {Vec3} */ (vec);
+					yield castVec.set(x, y, z);
+				}
 				i += this.arrayStride;
 			}
 		} else if (attributeSettings.componentCount == 4) {
@@ -381,7 +392,12 @@ export class InternalMeshAttributeBuffer {
 				const y = getFunction(i + attributeSettings.offset + valueByteSize * 1, true);
 				const z = getFunction(i + attributeSettings.offset + valueByteSize * 2, true);
 				const w = getFunction(i + attributeSettings.offset + valueByteSize * 3, true);
-				yield new Vec4(x, y, z, w);
+				if (!vec) {
+					yield new Vec4(x, y, z, w);
+				} else {
+					const castVec = /** @type {Vec4} */ (vec);
+					yield castVec.set(x, y, z, w);
+				}
 				i += this.arrayStride;
 			}
 		}
