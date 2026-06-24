@@ -1,4 +1,4 @@
-import { assertEquals, assertExists, assertThrows } from "std/testing/asserts.ts";
+import { assertEquals, assertExists, assertStrictEquals, assertThrows } from "std/testing/asserts.ts";
 import { Mesh, Vec2, Vec3, Vec4 } from "../../../../../src/mod.js";
 import { assertVecAlmostEquals } from "../../../../../src/util/asserts.js";
 import { InternalMeshAttributeBuffer } from "../../../../../src/core/InternalMeshAttributeBuffer.js";
@@ -927,6 +927,50 @@ Deno.test({
 		assertEquals(result.length, 2);
 		assertVecAlmostEquals(result[0], [1, 2, 3, 4]);
 		assertVecAlmostEquals(result[1], [5, 6, 7, 8]);
+	},
+});
+
+/**
+ * @param {number} componentCount
+ * @param {new () => Vec2 | Vec3 | Vec4} VecConstructor
+ * @param {(Vec2 | Vec3 | Vec4)[]} vectors
+ */
+function runProvidedTest(componentCount, VecConstructor, vectors) {
+	const buffer = new InternalMeshAttributeBuffer({
+		attributeSettings: [{ offset: 0, format: Mesh.AttributeFormat.FLOAT32, componentCount, attributeType: Mesh.AttributeType.POSITION }],
+	});
+	buffer.setVertexCount(2);
+	buffer.setVertexData(Mesh.AttributeType.POSITION, vectors, false);
+
+	const vec = new VecConstructor();
+	let i = 0;
+	for (const pos of buffer.getVertexData(Mesh.AttributeType.POSITION, { vec })) {
+		assertStrictEquals(pos, vec);
+		assertVecAlmostEquals(pos, vectors[i]);
+		i++;
+	}
+
+	assertEquals(i, vectors.length);
+}
+
+Deno.test({
+	name: "getVertexData() yielding provided Vec2",
+	fn() {
+		runProvidedTest(2, Vec2, [new Vec2(1, 2), new Vec2(4, 5)]);
+	},
+});
+
+Deno.test({
+	name: "getVertexData() yielding provided Vec3",
+	fn() {
+		runProvidedTest(3, Vec3, [new Vec3(1, 2, 3), new Vec3(4, 5, 6)]);
+	},
+});
+
+Deno.test({
+	name: "getVertexData() yielding provided Vec4",
+	fn() {
+		runProvidedTest(4, Vec4, [new Vec4(1, 2, 3, 4), new Vec4(5, 6, 7, 8)]);
 	},
 });
 

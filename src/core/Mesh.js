@@ -9,6 +9,14 @@ import { InternalMeshAttributeBuffer } from "./InternalMeshAttributeBuffer.js";
 
 /** @typedef {() => void} OnIndexBufferChangeCallback */
 
+/** @typedef {import("../mod.js").Vec2 | import("../mod.js").Vec3 | import("../mod.js").Vec4} GetVertexDataOptionsTemplate */
+
+/**
+ * @template {GetVertexDataOptionsTemplate} T
+ * @typedef GetVertexDataOptions
+ * @property {T} [vec]
+ */
+
 export class Mesh {
 	/** @type {InternalMeshAttributeBuffer[]} */
 	#buffers = [];
@@ -311,14 +319,16 @@ export class Mesh {
 
 	/**
 	 * Iterates over the vertex data of the specified attribute.
+	 * @template {GetVertexDataOptionsTemplate} T
 	 * @param {AttributeType} attributeType
+	 * @param {GetVertexDataOptions<T>} [options]
 	 */
-	getVertexData(attributeType) {
+	getVertexData(attributeType, options) {
 		const buffer = this.#getInternalAttributeBuffer(attributeType);
 		if (!buffer) {
 			throw new Error("This mesh does not contain an attribute with the specified type. Either add a vertex state that includes this attribute or add vertex data using setVertexData().");
 		}
-		return buffer.getVertexData(attributeType);
+		return buffer.getVertexData(attributeType, options);
 	}
 
 	// TODO: change the signature so that you can only provide an ArrayBuffer
