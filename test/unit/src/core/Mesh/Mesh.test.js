@@ -1,4 +1,4 @@
-import { assertEquals, assertExists, assertStrictEquals, assertNotStrictEquals, assertThrows } from "std/testing/asserts.ts";
+import { assertEquals, assertExists, assertNotStrictEquals, assertStrictEquals, assertThrows } from "std/testing/asserts.ts";
 import { Mesh, Vec2, Vec3, Vec4 } from "../../../../../src/mod.js";
 import { FakeVertexState, mockVertexStateColor, mockVertexStateSingleAttribute, mockVertexStateSingleAttributeSameFormat, mockVertexStateTwoAttributes, mockVertexStateUv } from "./shared.js";
 import { assertVecAlmostEquals } from "../../../../../src/util/asserts.js";
@@ -578,8 +578,8 @@ Deno.test({
 		assertEquals(buffers1.length, 1);
 		assertEquals(buffers2.length, 1);
 		assertStrictEquals(buffers1[0], buffers2[0]);
-	}
-})
+	},
+});
 
 Deno.test({
 	name: "setVertexState() is a no-op when the provided vertex state has the same format",
@@ -600,9 +600,8 @@ Deno.test({
 		assertEquals(buffers1.length, 1);
 		assertEquals(buffers2.length, 1);
 		assertStrictEquals(buffers1[0], buffers2[0]);
-	}
-})
-
+	},
+});
 
 Deno.test({
 	name: "setVertexState() reuses buffers that have the same format as the old vertex state",
@@ -669,7 +668,7 @@ Deno.test({
 							componentCount: 3,
 						},
 					],
-				])
+				]),
 			},
 			{
 				attributes: new Map([
@@ -722,5 +721,5 @@ Deno.test({
 		assertNotStrictEquals(positionBuffer1, positionBuffer2);
 		assertNotStrictEquals(normalBuffer1, normalBuffer2);
 		assertStrictEquals(uvBuffer1, uvBuffer2);
-	}
-})
+	},
+});

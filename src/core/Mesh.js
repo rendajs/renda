@@ -477,7 +477,7 @@ export class Mesh {
 					});
 				}
 
-				const existingBuffer = oldBuffers.find(buffer => {
+				const existingBuffer = oldBuffers.find((buffer) => {
 					if (buffer.attributeSettings.length != attributes.length) return false;
 					for (const [i, existingSetting] of buffer.attributeSettings.entries()) {
 						const newSetting = attributes[i];
@@ -487,7 +487,7 @@ export class Mesh {
 						if (existingSetting.offset != newSetting.offset) return false;
 					}
 					return true;
-				})
+				});
 
 				if (existingBuffer) {
 					this.#buffers.push(existingBuffer);
