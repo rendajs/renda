@@ -25,6 +25,26 @@ export const mockVertexStateSingleAttribute = /** @type {import("../../../../../
 	},
 ]));
 
+/**
+ * Same as {@linkcode mockVertexStateSingleAttribute} but it is a different reference.
+ * So the vertex state does not strictly equal `mockVertexStateSingleAttribute`, but it does have the same format.
+ */
+export const mockVertexStateSingleAttributeSameFormat = /** @type {import("../../../../../src/mod.js").VertexState} */ (new FakeVertexState([
+	{
+		attributes: new Map([
+			[
+				Mesh.AttributeType.POSITION,
+				{
+					attributeType: Mesh.AttributeType.POSITION,
+					offset: 0,
+					format: Mesh.AttributeFormat.FLOAT32,
+					componentCount: 3,
+				},
+			],
+		]),
+	},
+]));
+
 export const mockVertexStateTwoAttributes = /** @type {import("../../../../../src/mod.js").VertexState} */ (new FakeVertexState([
 	{
 		attributes: new Map([

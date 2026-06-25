@@ -449,17 +449,23 @@ export class Mesh {
 	 * If the mesh already contains existing vertex buffers,
 	 * these will be converted to match the format of the new VertexState.
 	 * Therefore, it's usually best to call {@linkcode setVertexState} first before making calls to {@linkcode setVertexData}.
+	 * If a buffer needs to be changed due to a new format, a new buffer reference is created.
+	 * This means that old references obtained via {@linkcode getAttributeBufferForType}
+	 * will no longer be part of this mesh. Only when the format stays the same, will old references be reused.
 	 * @param {import("../rendering/VertexState.js").VertexState?} vertexState
 	 */
 	setVertexState(vertexState) {
+		if (vertexState == this.#vertexState) return;
 		this.#vertexState = vertexState;
 
 		const oldBuffers = Array.from(this.#getInternalAttributeBuffers());
+		const unCopiedBuffers = new Set(oldBuffers);
 		this.#buffers = [];
 		this.#unusedBuffers.clear();
 
 		if (vertexState) {
 			for (const bufferDescriptor of vertexState.buffers) {
+				/** @type {import("./InternalMeshAttributeBuffer.js").MeshAttributeSettings[]} */
 				const attributes = [];
 				for (const attribute of bufferDescriptor.attributes.values()) {
 					const attributeType = attribute.attributeType;
@@ -470,16 +476,34 @@ export class Mesh {
 						attributeType,
 					});
 				}
-				const buffer = new InternalMeshAttributeBuffer({
-					arrayStride: bufferDescriptor.arrayStride,
-					attributeSettings: attributes,
-				});
-				if (this.vertexCount) buffer.setVertexCount(this.vertexCount);
-				this.#buffers.push(buffer);
+
+				const existingBuffer = oldBuffers.find(buffer => {
+					if (buffer.attributeSettings.length != attributes.length) return false;
+					for (const [i, existingSetting] of buffer.attributeSettings.entries()) {
+						const newSetting = attributes[i];
+						if (existingSetting.attributeType != newSetting.attributeType) return false;
+						if (existingSetting.componentCount != newSetting.componentCount) return false;
+						if (existingSetting.format != newSetting.format) return false;
+						if (existingSetting.offset != newSetting.offset) return false;
+					}
+					return true;
+				})
+
+				if (existingBuffer) {
+					this.#buffers.push(existingBuffer);
+					unCopiedBuffers.delete(existingBuffer);
+				} else {
+					const buffer = new InternalMeshAttributeBuffer({
+						arrayStride: bufferDescriptor.arrayStride,
+						attributeSettings: attributes,
+					});
+					if (this.vertexCount) buffer.setVertexCount(this.vertexCount);
+					this.#buffers.push(buffer);
+				}
 			}
 		}
 
-		for (const buffer of oldBuffers) {
+		for (const buffer of unCopiedBuffers) {
 			this.copyAttributeBufferData(buffer);
 		}
 	}
