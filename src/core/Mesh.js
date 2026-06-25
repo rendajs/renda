@@ -459,7 +459,7 @@ export class Mesh {
 		this.#vertexState = vertexState;
 
 		const oldBuffers = Array.from(this.#getInternalAttributeBuffers());
-		const unCopiedBuffers = new Set(oldBuffers);
+		const buffersNeedingCopy = new Set(oldBuffers);
 		this.#buffers = [];
 		this.#unusedBuffers.clear();
 
@@ -491,7 +491,7 @@ export class Mesh {
 
 				if (existingBuffer) {
 					this.#buffers.push(existingBuffer);
-					unCopiedBuffers.delete(existingBuffer);
+					buffersNeedingCopy.delete(existingBuffer);
 				} else {
 					const buffer = new InternalMeshAttributeBuffer({
 						arrayStride: bufferDescriptor.arrayStride,
@@ -503,7 +503,7 @@ export class Mesh {
 			}
 		}
 
-		for (const buffer of unCopiedBuffers) {
+		for (const buffer of buffersNeedingCopy) {
 			this.copyAttributeBufferData(buffer);
 		}
 	}
