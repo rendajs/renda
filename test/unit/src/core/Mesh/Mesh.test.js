@@ -1,6 +1,6 @@
-import { assertEquals, assertExists, assertStrictEquals, assertThrows } from "std/testing/asserts.ts";
+import { assertEquals, assertExists, assertNotStrictEquals, assertStrictEquals, assertThrows } from "std/testing/asserts.ts";
 import { Mesh, Vec2, Vec3, Vec4 } from "../../../../../src/mod.js";
-import { mockVertexStateColor, mockVertexStateSingleAttribute, mockVertexStateTwoAttributes, mockVertexStateUv } from "./shared.js";
+import { FakeVertexState, mockVertexStateColor, mockVertexStateSingleAttribute, mockVertexStateSingleAttributeSameFormat, mockVertexStateTwoAttributes, mockVertexStateUv } from "./shared.js";
 import { assertVecAlmostEquals } from "../../../../../src/util/asserts.js";
 
 Deno.test({
@@ -556,5 +556,170 @@ Deno.test({
 		assertEquals(normals.length, 2);
 		assertVecAlmostEquals(normals[0], [1, 2, 3]);
 		assertVecAlmostEquals(normals[1], [4, 5, 6]);
+	},
+});
+
+Deno.test({
+	name: "setVertexState() is a no-op when the provided vertex state is already assigned",
+	fn() {
+		const mesh = new Mesh();
+		mesh.setVertexState(mockVertexStateSingleAttribute);
+		mesh.setVertexCount(2);
+		mesh.setVertexData(Mesh.AttributeType.POSITION, [
+			new Vec3(1, 2, 3),
+			new Vec3(4, 5, 6),
+		]);
+
+		const buffers1 = Array.from(mesh.getAttributeBuffers());
+
+		mesh.setVertexState(mockVertexStateSingleAttribute);
+
+		const buffers2 = Array.from(mesh.getAttributeBuffers());
+		assertEquals(buffers1.length, 1);
+		assertEquals(buffers2.length, 1);
+		assertStrictEquals(buffers1[0], buffers2[0]);
+	},
+});
+
+Deno.test({
+	name: "setVertexState() is a no-op when the provided vertex state has the same format",
+	fn() {
+		const mesh = new Mesh();
+		mesh.setVertexState(mockVertexStateSingleAttribute);
+		mesh.setVertexCount(2);
+		mesh.setVertexData(Mesh.AttributeType.POSITION, [
+			new Vec3(1, 2, 3),
+			new Vec3(4, 5, 6),
+		]);
+
+		const buffers1 = Array.from(mesh.getAttributeBuffers());
+
+		mesh.setVertexState(mockVertexStateSingleAttributeSameFormat);
+
+		const buffers2 = Array.from(mesh.getAttributeBuffers());
+		assertEquals(buffers1.length, 1);
+		assertEquals(buffers2.length, 1);
+		assertStrictEquals(buffers1[0], buffers2[0]);
+	},
+});
+
+Deno.test({
+	name: "setVertexState() reuses buffers that have the same format as the old vertex state",
+	fn() {
+		const mockVertexStateTwoAttributesFirstFormat = /** @type {import("../../../../../src/mod.js").VertexState} */ (new FakeVertexState([
+			{
+				attributes: new Map([
+					[
+						Mesh.AttributeType.POSITION,
+						{
+							attributeType: Mesh.AttributeType.POSITION,
+							offset: 0,
+							format: Mesh.AttributeFormat.FLOAT32,
+							componentCount: 3,
+						},
+					],
+					[
+						Mesh.AttributeType.NORMAL,
+						{
+							attributeType: Mesh.AttributeType.NORMAL,
+							offset: 12,
+							format: Mesh.AttributeFormat.FLOAT32,
+							componentCount: 3,
+						},
+					],
+				]),
+			},
+			{
+				attributes: new Map([
+					[
+						Mesh.AttributeType.UV1,
+						{
+							attributeType: Mesh.AttributeType.UV1,
+							offset: 0,
+							format: Mesh.AttributeFormat.FLOAT32,
+							componentCount: 2,
+						},
+					],
+				]),
+			},
+		]));
+		const mockVertexStateTwoAttributesSecondFormat = /** @type {import("../../../../../src/mod.js").VertexState} */ (new FakeVertexState([
+			{
+				attributes: new Map([
+					[
+						Mesh.AttributeType.POSITION,
+						{
+							attributeType: Mesh.AttributeType.POSITION,
+							offset: 0,
+							format: Mesh.AttributeFormat.FLOAT32,
+							componentCount: 3,
+						},
+					],
+				]),
+			},
+			{
+				attributes: new Map([
+					[
+						Mesh.AttributeType.NORMAL,
+						{
+							attributeType: Mesh.AttributeType.NORMAL,
+							offset: 12,
+							format: Mesh.AttributeFormat.FLOAT32,
+							componentCount: 3,
+						},
+					],
+				]),
+			},
+			{
+				attributes: new Map([
+					[
+						Mesh.AttributeType.UV1,
+						{
+							attributeType: Mesh.AttributeType.UV1,
+							offset: 0,
+							format: Mesh.AttributeFormat.FLOAT32,
+							componentCount: 2,
+						},
+					],
+				]),
+			},
+		]));
+
+		const mesh = new Mesh();
+		mesh.setVertexState(mockVertexStateTwoAttributesFirstFormat);
+		mesh.setVertexCount(2);
+		mesh.setVertexData(Mesh.AttributeType.POSITION, [
+			new Vec3(1, 2, 3),
+			new Vec3(4, 5, 6),
+		]);
+		mesh.setVertexData(Mesh.AttributeType.NORMAL, [
+			new Vec3(1, 2, 3),
+			new Vec3(4, 5, 6),
+		]);
+		mesh.setVertexData(Mesh.AttributeType.UV1, [
+			new Vec2(1, 2),
+			new Vec2(3, 4),
+		]);
+
+		const buffers1 = Array.from(mesh.getAttributeBuffers());
+		const positionBuffer1 = mesh.getAttributeBufferForType(Mesh.AttributeType.POSITION);
+		const normalBuffer1 = mesh.getAttributeBufferForType(Mesh.AttributeType.NORMAL);
+		const uvBuffer1 = mesh.getAttributeBufferForType(Mesh.AttributeType.UV1);
+
+		mesh.setVertexState(mockVertexStateTwoAttributesSecondFormat);
+
+		const buffers2 = Array.from(mesh.getAttributeBuffers());
+		const positionBuffer2 = mesh.getAttributeBufferForType(Mesh.AttributeType.POSITION);
+		const normalBuffer2 = mesh.getAttributeBufferForType(Mesh.AttributeType.NORMAL);
+		const uvBuffer2 = mesh.getAttributeBufferForType(Mesh.AttributeType.UV1);
+
+		assertEquals(buffers1.length, 2);
+		assertEquals(buffers2.length, 3);
+		assertStrictEquals(positionBuffer1, normalBuffer1);
+		assertNotStrictEquals(normalBuffer1, uvBuffer1);
+
+		assertNotStrictEquals(positionBuffer1, positionBuffer2);
+		assertNotStrictEquals(normalBuffer1, normalBuffer2);
+		assertStrictEquals(uvBuffer1, uvBuffer2);
 	},
 });
