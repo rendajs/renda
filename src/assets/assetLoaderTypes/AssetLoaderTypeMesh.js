@@ -41,7 +41,7 @@ export class AssetLoaderTypeMesh extends AssetLoaderType {
 					assertInstanceType: VertexState,
 				},
 			});
-			mesh.setVertexState(vertexState);
+			mesh.setVertexState(vertexState, { deleteUnusedBuffers: true });
 		}
 
 		const indexFormat = decomposer.getUint8();

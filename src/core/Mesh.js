@@ -344,7 +344,7 @@ export class Mesh {
 	/**
 	 * @param {InternalMeshAttributeBuffer} attributeBuffer
 	 */
-	copyAttributeBufferData(attributeBuffer) {
+	copyAttributeBufferData(attributeBuffer, allowUnusedBufferCreation = true) {
 		// todo: there's probably still some performance that can be gained here
 		// currently it's decomposing the buffer into vectors and turning
 		// it back into a buffer, if the buffer doesn't need to be changed it
@@ -355,12 +355,24 @@ export class Mesh {
 				// TODO: handle converting attribute data when the attribute type is not specified
 				continue;
 			}
-			const array = Array.from(attributeBuffer.getVertexData(attribute.attributeType));
-			const castArray = /** @type {number[] | import("../math/Vec2.js").Vec2[] | import("../math/Vec3.js").Vec3[]} */ (array);
-			this.setVertexData(attribute.attributeType, castArray, {
+
+			/** @type {UnusedAttributeBufferOptions<any>} */
+			const opts = {
 				unusedFormat: attribute.format,
 				unusedComponentCount: attribute.componentCount,
-			});
+			};
+
+			if (!allowUnusedBufferCreation) {
+				const existingBuffer = this.#getInternalAttributeBuffer(attribute.attributeType, {
+					...opts,
+					createUnused: false,
+				});
+				if (!existingBuffer) continue;
+			}
+
+			const array = Array.from(attributeBuffer.getVertexData(attribute.attributeType));
+			const castArray = /** @type {number[] | import("../math/Vec2.js").Vec2[] | import("../math/Vec3.js").Vec3[]} */ (array);
+			this.setVertexData(attribute.attributeType, castArray, opts);
 		}
 	}
 
@@ -453,8 +465,13 @@ export class Mesh {
 	 * This means that old references obtained via {@linkcode getAttributeBufferForType}
 	 * will no longer be part of this mesh. Only when the format stays the same, will old references be reused.
 	 * @param {import("../rendering/VertexState.js").VertexState?} vertexState
+	 * @param {object} [options]
+	 * @param {boolean} [options.deleteUnusedBuffers] Defaults to true, deletes all old buffers that are not present in
+	 * the provided vertexState.
 	 */
-	setVertexState(vertexState) {
+	setVertexState(vertexState, {
+		deleteUnusedBuffers = true,
+	} = {}) {
 		if (vertexState == this.#vertexState) return;
 		this.#vertexState = vertexState;
 
@@ -504,7 +521,7 @@ export class Mesh {
 		}
 
 		for (const buffer of buffersNeedingCopy) {
-			this.copyAttributeBufferData(buffer);
+			this.copyAttributeBufferData(buffer, !deleteUnusedBuffers);
 		}
 	}
 
