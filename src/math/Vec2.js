@@ -28,6 +28,36 @@ export class Vec2 {
 		this.set(...args);
 	}
 
+	/** Returns a new vector pointing to the left (-1, 0) */
+	static get left() {
+		return new Vec2(-1, 0);
+	}
+
+	/** Returns a new vector pointing down (0, -1) */
+	static get down() {
+		return new Vec2(0, -1);
+	}
+
+	/** Returns a new vector pointing to the right (1, 0) */
+	static get right() {
+		return new Vec2(1, 0);
+	}
+
+	/** Returns a new vector pointing up (0, 1) */
+	static get up() {
+		return new Vec2(0, 1);
+	}
+
+	/** Returns a new vector with all components set to one (1, 1) */
+	static get one() {
+		return new Vec2(1, 1);
+	}
+
+	/** Returns a new vector with all components set to zero (0, 0). This is the same as `new Vec2()`. */
+	static get zero() {
+		return new Vec2();
+	}
+
 	get x() {
 		return this._x;
 	}

@@ -60,6 +60,18 @@ Deno.test({
 });
 
 Deno.test({
+	name: "Create with static getters",
+	fn() {
+		assertVecAlmostEquals(Vec2.left, [-1, 0]);
+		assertVecAlmostEquals(Vec2.right, [1, 0]);
+		assertVecAlmostEquals(Vec2.up, [0, 1]);
+		assertVecAlmostEquals(Vec2.down, [0, -1]);
+		assertVecAlmostEquals(Vec2.one, [1, 1]);
+		assertVecAlmostEquals(Vec2.zero, [0, 0]);
+	},
+});
+
+Deno.test({
 	name: "Set with Vec2",
 	fn() {
 		const vec2 = new Vec2([1, 2]);
